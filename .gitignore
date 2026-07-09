@@ -1,0 +1,21 @@
+# Entornos virtuales
+backend/venv/
+venv/
+env/
+.env
+
+# Dependencias Node
+node_modules/
+frontend/node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Entornos IDE/OS
+.vscode/
+.idea/
+.DS_Store
