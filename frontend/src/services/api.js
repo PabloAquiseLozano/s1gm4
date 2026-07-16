@@ -1,22 +1,30 @@
 /**
- * Llama al backend para obtener el stream SSE de la IA.
- * Retorna el reader para que App.jsx controle su propio estado en React.
+ * api.js — Capa de comunicación con el backend S1GM4.
+ * La URL base se configura via VITE_API_URL (default: localhost:8000)
  */
-export async function fetchChatStream(prompt, history, modeId, systemPrompt) {
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+/**
+ * Llama al endpoint de streaming SSE del backend.
+ * El system_prompt ya no se envía desde el frontend — el backend lo resuelve
+ * internamente según el `mode` y los archivos de personalidad .md.
+ *
+ * @param {string} prompt - Mensaje del usuario
+ * @param {Array}  history - Historial reciente (últimos 12 mensajes)
+ * @param {string} modeId  - 'reflexive' | 'aggressive'
+ * @returns {ReadableStreamDefaultReader}
+ */
+export async function fetchChatStream(prompt, history, modeId) {
   const payload = {
     message: prompt,
-    history: history.map((m) => ({
-      role: m.role,
-      content: m.content,
-    })),
-    mode: modeId,
-    system_prompt: systemPrompt,
+    history: history.map(({ role, content }) => ({ role, content })),
+    mode:    modeId,
   };
 
-  const res = await fetch('http://localhost:8000/api/chat/stream', {
-    method: 'POST',
+  const res = await fetch(`${API_BASE}/api/chat/stream`, {
+    method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body:    JSON.stringify(payload),
   });
 
   if (!res.ok) {

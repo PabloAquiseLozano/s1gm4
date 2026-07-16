@@ -3,6 +3,8 @@ import ChatWindow from './components/ChatWindow';
 import { useChatManager } from './hooks/useChatManager';
 import { MODES } from './config/modes';
 
+import MoaiLoader from './components/MoaiLoader';
+
 function App() {
   const {
     chats,
@@ -19,17 +21,12 @@ function App() {
     handleSend
   } = useChatManager();
 
-  const suggestions = [
-    '¿Cómo reacciono ante una crítica pública injusta?',
-    'Me preocupa el futuro y perder el control.',
-    'Ayúdame a organizar mi semana con disciplina.',
-    'Necesito un plan para superar la procrastinación.',
-  ];
+  const suggestions = [];
 
   if (isLoading) {
     return (
-      <div className="app-shell" style={{ justifyContent: 'center', alignItems: 'center', color: 'white' }}>
-        Cargando tus reflexiones... 🗿
+      <div className="app-shell" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <MoaiLoader />
       </div>
     );
   }

@@ -1,31 +1,19 @@
 import { useState } from 'react';
-
-// Importa el logo del usuario (se usará cuando exista en assets)
-let logoSrc = null;
-try {
-  logoSrc = new URL('../assets/logo.svg', import.meta.url).href;
-} catch {
-  logoSrc = null;
-}
+import logoSidebar from '../assets/logo.png';
 
 function Sidebar({ chats, activeChatId, onSelectChat, onNewChat, onDeleteChat, isGenerating, modes }) {
   const [hoveredId, setHoveredId] = useState(null);
 
   const formatTime = (ts) => {
-    const d = new Date(ts);
-    const now = new Date();
-    const isToday = d.toDateString() === now.toDateString();
-    return isToday
-      ? d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-      : d.toLocaleDateString('es', { day: '2-digit', month: 'short' });
+    return 'Nuevo chat';
   };
 
   return (
     <aside className="sidebar">
       {/* ── Brand ── */}
       <div className="sidebar-brand">
-        {logoSrc ? (
-          <img src={logoSrc} alt="S1GM4 logo" className="sidebar-logo" />
+        {logoSidebar ? (
+          <img src={logoSidebar} alt="S1GM4 logo" className="sidebar-logo" />
         ) : (
           <span className="sidebar-brand-icon">🗿</span>
         )}
@@ -64,15 +52,12 @@ function Sidebar({ chats, activeChatId, onSelectChat, onNewChat, onDeleteChat, i
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => onSelectChat(chat.id)}
             >
-              <span className="chat-item-icon">
-                {mode?.danger ? '🔥' : '🗿'}
-              </span>
               <div className="chat-item-info">
                 <span className="chat-item-title">{chat.title}</span>
                 <span className="chat-item-meta">
                   {msgCount > 0
                     ? `${msgCount} msg · ${lastMsg?.content?.slice(0, 22) || ''}…`
-                    : `${formatTime(chat.createdAt)}`}
+                    : `Nuevo Chat`}
                 </span>
               </div>
 
@@ -92,7 +77,7 @@ function Sidebar({ chats, activeChatId, onSelectChat, onNewChat, onDeleteChat, i
 
       {/* ── Footer ── */}
       <div className="sidebar-footer">
-        S1GM4 · Gemini · FastAPI · React
+        Desarrollado por - Pablo Dev -
       </div>
     </aside>
   );
