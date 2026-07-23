@@ -9,7 +9,11 @@
  *   DESPUÉS: "| DÍA | TAREA |"   → tabla limpia
  */
 export function fixMarkdownTables(md = '') {
-  return md
+  // 1. Separar filas de tablas que la IA junta en una sola línea usando '||'
+  let text = md.replace(/\|\|/g, '|\n|');
+
+  // 2. Corregir viñetas al inicio de filas de tablas (- | col | col | -> | col | col |)
+  return text
     .split('\n')
     .map((line) => {
       const match = line.match(/^(\s*)[-*]\s+(\|.+)$/);

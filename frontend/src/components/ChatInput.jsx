@@ -1,7 +1,10 @@
 import { Select, MenuItem, IconButton } from '@mui/material';
 import { Mic, Square, ArrowUp } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 
 function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, inputValue, onInputChange, onSend, onToggleMic }) {
+  const { t } = useSettings();
+
   const handleChange = (e) => {
     onInputChange(e.target.value);
     e.target.style.height = 'auto';
@@ -23,10 +26,8 @@ function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, 
           rows={1}
           placeholder={
             listening
-              ? 'Escuchando...'
-              : isAggressive
-              ? '¿Cuál es tu excusa hoy?'
-              : 'Escribe tu mensaje…'
+              ? t('listening')
+              : t('inputPlaceholder')
           }
           value={inputValue}
           onChange={handleChange}
@@ -41,7 +42,7 @@ function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, 
             size="small"
             renderValue={(value) => (
                <span style={{ color: value === 'aggressive' ? 'var(--danger)' : 'inherit', fontWeight: 500 }}>
-                 {value === 'aggressive' ? 'Modo Bestia' : 'Reflexivo'}
+                 {value === 'aggressive' ? t('modeAggressive') : t('modeReflexive')}
                </span>
             )}
             sx={{
@@ -56,9 +57,9 @@ function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, 
             MenuProps={{
               sx: {
                 "& .MuiPaper-root": {
-                  backgroundColor: '#1a1a1a',
-                  color: '#ececf1',
-                  border: '1px solid #333',
+                  backgroundColor: 'var(--panel)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border)',
                   borderRadius: '12px',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
                   marginTop: '8px'
@@ -70,7 +71,7 @@ function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, 
                   borderRadius: '8px',
                   padding: '8px 12px',
                   marginBottom: '4px',
-                  '&:hover': { backgroundColor: '#2a2a2a' }
+                  '&:hover': { backgroundColor: 'var(--panel-light)' }
                 },
                 "& .MuiMenuItem-root:last-child": {
                   marginBottom: 0
@@ -83,14 +84,12 @@ function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, 
           >
             <MenuItem value="reflexive">
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#fff' }}>Reflexivo</span>
-                <span style={{ fontSize: '11px', color: '#b4b4c8', marginTop: '2px' }}>Sabiduría y autodisciplina</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>{t('modeReflexive')}</span>
               </div>
             </MenuItem>
             <MenuItem value="aggressive">
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#ef4444' }}>Modo Bestia</span>
-                <span style={{ fontSize: '11px', color: '#b4b4c8', marginTop: '2px' }}>Sin filtros ni excusas</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#ef4444' }}>{t('modeAggressive')}</span>
               </div>
             </MenuItem>
           </Select>
@@ -110,7 +109,7 @@ function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, 
               onClick={() => onSend()}
               disabled={isGenerating}
               sx={{ 
-                color: isAggressive ? 'var(--danger)' : 'white',
+                color: isAggressive ? 'var(--danger)' : 'var(--text)',
                 '&:hover': { background: 'rgba(255,255,255,0.05)' }
               }}
             >

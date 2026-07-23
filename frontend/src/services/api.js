@@ -14,11 +14,12 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
  * @param {string} modeId  - 'reflexive' | 'aggressive'
  * @returns {ReadableStreamDefaultReader}
  */
-export async function fetchChatStream(prompt, history, modeId) {
+export async function fetchChatStream(prompt, history, modeId, language = 'es') {
   const payload = {
     message: prompt,
     history: history.map(({ role, content }) => ({ role, content })),
     mode:    modeId,
+    language: language,
   };
 
   const res = await fetch(`${API_BASE}/api/chat/stream`, {

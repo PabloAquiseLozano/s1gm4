@@ -38,16 +38,6 @@ function MessageBubble({ msg, isAggressive, speaking, onToggleSpeak }) {
           </>
         )}
 
-        {/* Botón escuchar — solo en respuestas bot completadas */}
-        {!isUser && !isStreaming && msg.content && (
-          <button
-            className={`voice-btn ${speaking ? 'voice-btn-active' : ''}`}
-            onClick={() => onToggleSpeak(msg.content)}
-            title={speaking ? 'Detener voz' : 'Escuchar respuesta'}
-          >
-            {speaking ? '⏹' : '🔊'}
-          </button>
-        )}
       </div>
     </div>
   );

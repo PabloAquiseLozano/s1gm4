@@ -1,19 +1,30 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
+
+const LANG_MAP = {
+  es: 'es-ES',
+  en: 'en-US',
+  pt: 'pt-BR',
+  fr: 'fr-FR',
+};
 
 /**
  * useSpeechRecognition — Hook de reconocimiento de voz (STT).
  *
- * Modo continuo con reinicio automático en pausas largas.
- * @param {{ onResult: (text: string) => void, onFinal?: (text: string) => void }} callbacks
+ * Mantiene la acumulación continua del texto durante pausas en la voz.
+ * @param {{ language?: string, onResult: (text: string) => void, onFinal?: (text: string) => void }} callbacks
  */
-export function useSpeechRecognition({ onResult, onFinal }) {
-  const recognitionRef    = useRef(null);
-  const shouldRestartRef  = useRef(false);
+export function useSpeechRecognition({ language = 'es', onResult, onFinal }) {
+  const recognitionRef     = useRef(null);
+  const shouldRestartRef   = useRef(false);
+  const accumulatedRef     = useRef('');
   const [listening, setListening] = useState(false);
 
   const stop = useCallback(() => {
     shouldRestartRef.current = false;
-    recognitionRef.current?.stop();
+    accumulatedRef.current   = '';
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
     setListening(false);
   }, []);
 
@@ -24,24 +35,34 @@ export function useSpeechRecognition({ onResult, onFinal }) {
       return;
     }
 
+    // Detener cualquier instancia previa
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
+
     const rec = new SR();
-    rec.lang            = 'es-ES';
+    rec.lang            = LANG_MAP[language] || 'es-ES';
     rec.interimResults  = true;
     rec.continuous      = true;
     rec.maxAlternatives = 1;
 
-    let accumulated = '';
+    accumulatedRef.current = '';
 
     rec.onresult = (e) => {
-      let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = 0; i < e.results.length; i++) {
+        const transcript = e.results[i][0].transcript;
         if (e.results[i].isFinal) {
-          accumulated += e.results[i][0].transcript + ' ';
+          finalTranscript += transcript + ' ';
         } else {
-          interim = e.results[i][0].transcript;
+          interimTranscript += transcript;
         }
       }
-      onResult(accumulated + interim);
+
+      const fullText = (finalTranscript + interimTranscript).trim();
+      if (fullText) onResult(fullText);
     };
 
     rec.onend = () => {
@@ -49,7 +70,8 @@ export function useSpeechRecognition({ onResult, onFinal }) {
         try { rec.start(); } catch { setListening(false); }
       } else {
         setListening(false);
-        if (accumulated.trim()) onFinal?.(accumulated.trim());
+        const finalStr = accumulatedRef.current.trim();
+        if (finalStr) onFinal?.(finalStr);
       }
     };
 
@@ -59,11 +81,25 @@ export function useSpeechRecognition({ onResult, onFinal }) {
       setListening(false);
     };
 
-    recognitionRef.current  = rec;
+    recognitionRef.current   = rec;
     shouldRestartRef.current = true;
-    rec.start();
-    setListening(true);
-  }, [onResult, onFinal]);
+    try {
+      rec.start();
+      setListening(true);
+    } catch {
+      setListening(false);
+    }
+  }, [language, onResult, onFinal]);
+
+  // Si cambia el estado de listening y el componente se desmonta, asegurar apagar
+  useEffect(() => {
+    return () => {
+      shouldRestartRef.current = false;
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+    };
+  }, []);
 
   return { listening, start, stop };
 }

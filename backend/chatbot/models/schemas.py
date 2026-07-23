@@ -10,6 +10,7 @@ class ChatRequest(BaseModel):
     history: Optional[List[Message]] = []
     mode: Optional[str] = "reflexive"
     system_prompt: Optional[str] = None
+    language: Optional[str] = "es"
 
 class TTSRequest(BaseModel):
     text: str

@@ -10,15 +10,17 @@ const THINK_RE = /<\|channel>thought[\s\S]*?<channel\|>|<think>[\s\S]*?<\/think>
 
 /**
  * Elimina bloques de thinking interno del texto si alguno se filtró.
+ * Preserva exactamente todos los espacios en blanco y saltos de línea del modelo.
  * @param {string} text
  * @returns {string}
  */
 export function stripThinking(text) {
-  return text.replace(THINK_RE, '').trimStart();
+  return text ? text.replace(THINK_RE, '') : '';
 }
 
 /**
  * Parsea las líneas de un buffer SSE y extrae los chunks de texto.
+ * Preserva los espacios en blanco exactos entre tokens/chunks.
  * @param {string} buffer - Buffer acumulado de chunks SSE
  * @returns {{ texts: string[], done: boolean, remaining: string }}
  */
@@ -29,14 +31,16 @@ export function parseSSEBuffer(buffer) {
   let done = false;
 
   for (const line of lines) {
-    if (!line.startsWith('data: ')) continue;
-    const raw = line.slice(6).trim();
-    if (raw === '[DONE]') { done = true; break; }
+    const cleanLine = line.replace(/\r$/, '');
+    if (!cleanLine.startsWith('data: ')) continue;
+    
+    const raw = cleanLine.slice(6);
+    if (raw.trim() === '[DONE]') { done = true; break; }
 
     try {
       const parsed = JSON.parse(raw);
       if (parsed.error) throw new Error(parsed.error);
-      if (parsed.text) {
+      if (parsed.text !== undefined && parsed.text !== null) {
         const clean = stripThinking(parsed.text);
         if (clean) texts.push(clean);
       }

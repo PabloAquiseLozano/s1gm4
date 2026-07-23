@@ -1,54 +1,66 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
-import { useSpeechOutput } from '../hooks/useSpeechOutput';
+import { useSettings } from '../contexts/SettingsContext';
 import WelcomeScreen from './WelcomeScreen';
 import MessageBubble from './MessageBubble';
 import ChatInput from './ChatInput';
 
 /**
  * ChatWindow — Componente principal de la ventana de chat.
- * Orquesta los sub-componentes y hooks de voz.
+ * Orquesta los sub-componentes.
  */
-function ChatWindow({ chat, mode, isGenerating, inputValue, onInputChange, onSend, onModeChange, suggestions }) {
+function ChatWindow({
+  chat,
+  mode,
+  isGenerating,
+  inputValue,
+  onInputChange,
+  onSend,
+  onModeChange,
+  suggestions,
+  isAnonymous,
+  onOpenAuth,
+  user,
+}) {
   const messagesEndRef = useRef(null);
-  const prevLenRef     = useRef(0);
+  const { language }   = useSettings();
 
   const messages     = chat?.messages || [];
   const isEmpty      = messages.length === 0 && !isGenerating;
   const isAggressive = mode?.id === 'aggressive';
 
-  const { speaking, speak, stopSpeak } = useSpeechOutput();
-
   const { listening, start: startMic, stop: stopMic } = useSpeechRecognition({
+    language,
     onResult: (text) => onInputChange(text),
     onFinal:  (text) => onInputChange(text),
   });
+
+  // Apagar micrófono al enviar el mensaje
+  const handleSendWrapper = useCallback((textOverride) => {
+    stopMic();
+    onSend(textOverride);
+  }, [stopMic, onSend]);
 
   // Auto-scroll al último mensaje
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isGenerating]);
 
-  // Auto-voz en Modo Bestia al completar respuesta
-  useEffect(() => {
-    if (messages.length > prevLenRef.current) {
-      prevLenRef.current = messages.length;
-      const last = messages[messages.length - 1];
-      if (last?.role === 'assistant' && !last.streaming && isAggressive) {
-        speak(last.content);
-      }
-    }
-  }, [messages, isAggressive]); // eslint-disable-line
-
-  const toggleMic   = useCallback(() => (listening ? stopMic() : startMic()), [listening, stopMic, startMic]);
-  const toggleSpeak = useCallback((content) => (speaking ? stopSpeak() : speak(content)), [speaking, stopSpeak, speak]);
+  const toggleMic = useCallback(() => (listening ? stopMic() : startMic()), [listening, stopMic, startMic]);
 
   return (
     <div className={`chat-shell ${isEmpty ? 'chat-shell-centered' : ''}`}>
       {/* ── Área de mensajes ── */}
       <div className="messages-area">
         {isEmpty ? (
-          <WelcomeScreen mode={mode} suggestions={suggestions} onSend={onSend} />
+          <WelcomeScreen
+            mode={mode}
+            suggestions={suggestions}
+            onSend={handleSendWrapper}
+            isAnonymous={isAnonymous}
+            onOpenAuth={onOpenAuth}
+            user={user}
+          />
         ) : (
           <div className="messages-feed">
             {messages.map((msg, idx) => (
@@ -56,8 +68,6 @@ function ChatWindow({ chat, mode, isGenerating, inputValue, onInputChange, onSen
                 key={idx}
                 msg={msg}
                 isAggressive={isAggressive}
-                speaking={speaking}
-                onToggleSpeak={toggleSpeak}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -74,7 +84,7 @@ function ChatWindow({ chat, mode, isGenerating, inputValue, onInputChange, onSen
         isGenerating={isGenerating}
         inputValue={inputValue}
         onInputChange={onInputChange}
-        onSend={onSend}
+        onSend={handleSendWrapper}
         onToggleMic={toggleMic}
       />
     </div>
