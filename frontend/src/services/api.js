@@ -1,8 +1,8 @@
 /**
  * api.js — Capa de comunicación con el backend S1GM4.
- * La URL base se configura via VITE_API_URL (default: localhost:8000)
+ * La URL base se configura via VITE_API_URL (default: https://s1gm4.onrender.com)
  */
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://s1gm4.onrender.com';
 
 /**
  * Llama al endpoint de streaming SSE del backend.
