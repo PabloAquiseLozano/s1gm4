@@ -30,30 +30,94 @@ _THINK_RE = re.compile(
 )
 
 
-_COT_PREFIX_RE = re.compile(
-    r"^\s*(?:•|\*|-)?\s*(?:User|Tone|Name|Persona|Language|Goal|The |Initial|S1GM4|Keywords|Structure|Direct|Confront|Table|Orders|Ending|Acknowledge|Address|Intent|Constraint|Action|Drafting)",
+# Palabras clave de encabezado que el modelo usa en sus notas CoT
+_COT_HEADER_RE = re.compile(
+    r"^[\s\u2022\*\-]*(?:"
+    r"User|Tone|Name|Persona|Language|Goal|The\s|Initial|S1GM4|Keywords|Structure|"
+    r"Direct|Confront|Table(?!\s*\|)|Orders|Ending|Acknowledge|Address|Intent|Constraint|"
+    r"Action|Drafting|Context|Reaction|Theme|Core\s+message|Opening|Body|Key\s+point|"
+    r"Closing|Drafting\s+phrases|Persona\s+constraints|Permission|Brutal|"
+    r"AI\s+should|should\s+interpret|should\s+not|The\s+AI|"
+    r"In\s+the\s+S1GM4|Response:|Note:|Analysis:|Plan:"
+    r")",
     re.IGNORECASE
 )
 
+# Patrones de líneas de estructura numerada CoT
+_COT_NUMBERED_RE = re.compile(
+    r"^[\s\u2022\*\-]*\d+\.\s+(?:Direct|Confront|Orders|Ending|Call|Opening|Body|Closing|Address|Key)",
+    re.IGNORECASE
+)
+
+# Frases textuales que delatan notas de borrador
+_COT_PHRASES = (
+    "WRONG", "too soft", "mindset", "escapism",
+    "Beast Mo", "Drafting phrases",
+    "Persona constraints", "No compassion for excuses",
+    "Permission to use", "AI should", "should not back",
+    "should interpret", "no filters, no compassion",
+)
+
+
 def _is_cot_line(l: str) -> bool:
+    """Retorna True si la línea parece pertenecer a notas internas / CoT del modelo."""
     if not l:
         return False
-    return (
-        bool(_COT_PREFIX_RE.match(l)) or
-        re.match(r"^\d+\.\s+(?:Direct|Confront|Table|Orders|Ending|Call|The|Action)", l, re.IGNORECASE) or
-        ("slang" in l and "(" in l) or
-        ("context" in l and "(" in l) or
-        ("WRONG" in l) or
-        ("too soft" in l) or
-        ("mindset" in l) or
-        ("escapism" in l)
-    )
+    if bool(_COT_HEADER_RE.match(l)):
+        return True
+    if bool(_COT_NUMBERED_RE.match(l)):
+        return True
+    l_lower = l.lower()
+    return any(phrase.lower() in l_lower for phrase in _COT_PHRASES)
+
 
 def _strip_thinking(text: str) -> str:
-    """Elimina cualquier bloque de razonamiento interno del texto (tags XML o borradores/CoT en texto plano multilingüe)."""
+    """Elimina bloques de razonamiento interno (tags XML y notas CoT en texto plano).
+
+    Estrategia:
+    1. Quitar tags XML de thinking.
+    2. Si la MAYORÍA de las líneas con contenido son CoT, descartar todo el bloque
+       hasta encontrar una línea que no sea CoT.
+    3. De lo contrario, emitir el texto tal cual.
+    """
+    # 1. Remover tags XML de thinking
     text = _THINK_RE.sub("", text)
 
     lines = text.split("\n")
+    non_empty = [l.strip() for l in lines if l.strip()]
+
+    # Si no hay contenido, devolver vacío
+    if not non_empty:
+        return ""
+
+    # Contar cuántas líneas no vacías son CoT
+    cot_count = sum(1 for l in non_empty if _is_cot_line(l))
+    cot_ratio = cot_count / len(non_empty)
+
+    # Si más del 55% de las líneas con contenido son CoT → descartar todo
+    # excepto las líneas finales que no sean CoT
+    if cot_ratio > 0.55:
+        clean_lines = []
+        found_real = False
+        for line in lines:
+            l = line.strip()
+            if not l:
+                if found_real:
+                    clean_lines.append(line)
+                continue
+            if not _is_cot_line(l):
+                # Verificar que no sean subviñetas indentadas de un bloque CoT previo
+                # Una línea real comienza sin prefijo de bullet indentado excesivo
+                indent = len(line) - len(line.lstrip())
+                if indent <= 1 or found_real:
+                    found_real = True
+                    clean_lines.append(line)
+            elif found_real:
+                # Si ya encontramos contenido real, parar si vuelve CoT
+                break
+        return "\n".join(clean_lines)
+
+    # Si hay pocas líneas CoT, filtrar solo las del inicio
     clean_lines = []
     in_cot = True
     for line in lines:
@@ -62,7 +126,7 @@ def _strip_thinking(text: str) -> str:
             if not in_cot:
                 clean_lines.append(line)
             continue
-        if _is_cot_line(l) and in_cot:
+        if in_cot and _is_cot_line(l):
             continue
         else:
             in_cot = False
