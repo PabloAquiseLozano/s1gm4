@@ -36,7 +36,61 @@ body {
   display: flex;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
+  position: relative;
+}
+
+/* ─── Mobile Topbar Base ─────────────────────────────────── */
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  height: 52px;
+  min-height: 52px;
+  z-index: 100;
+  width: 100%;
+}
+
+.mobile-topbar-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mobile-topbar-btn:hover { background: var(--panel-light); color: var(--text); }
+.mobile-topbar-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.mobile-topbar-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+
+/* ─── Sidebar Overlay Base ───────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 199;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────── */
@@ -62,9 +116,14 @@ body {
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   padding: 20px 18px 16px;
   border-bottom: 1px solid var(--border);
+}
+.sidebar-brand-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .sidebar-brand-icon { font-size: 22px; }
 .sidebar-brand-title {
@@ -80,6 +139,23 @@ body {
   letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+.sidebar-close-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.sidebar-close-btn:hover {
+  background: var(--panel-light);
+  color: var(--text);
 }
 
 .sidebar-new-chat {
@@ -1139,6 +1215,208 @@ body {
   text-overflow: ellipsis;
   text-align: left;
   margin-top: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DISEÑO RESPONSIVE & MOBILE (≤768px)
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* ── 1. Topbar visible en mobile ── */
+  .mobile-topbar {
+    display: flex;
+  }
+
+  /* ── Botón X visible en el sidebar mobile ── */
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  /* ── 2. Sidebar como Drawer desplegable ── */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Overlay de fondo traslúcido */
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── 3. Chat Shell ocupa todo el espacio ── */
+  .chat-shell {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+  }
+
+  /* ── 4. Ajuste de mensajes y burbujas ── */
+  .messages-area {
+    padding: 14px 10px;
+  }
+
+  .messages-feed {
+    gap: 14px;
+    padding: 0 4px;
+  }
+
+  .bubble {
+    max-width: 88%;
+    font-size: 13.5px;
+    padding: 10px 13px;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    font-size: 12px;
+  }
+
+  /* ── 5. Input footer optimizado para mobile con safe area ── */
+  .input-footer {
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .input-wrapper {
+    border-radius: 20px;
+    padding: 8px 8px 8px 14px;
+    gap: 6px;
+  }
+
+  .chat-input {
+    font-size: 14px;
+    min-height: 22px;
+    max-height: 120px;
+  }
+
+  .mode-select {
+    padding: 5px 6px;
+    font-size: 11px;
+    border-radius: 10px;
+  }
+
+  .mic-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 14px;
+    border-radius: 50%;
+  }
+
+  .send-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 14px;
+  }
+
+  /* ── 6. Welcome screen responsive ── */
+  .welcome-state {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .welcome-title {
+    font-size: 24px;
+  }
+
+  .welcome-desc {
+    font-size: 12.5px;
+  }
+
+  .suggestions-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* ── 7. Settings Modal responsive ── */
+  .settings-modal {
+    width: 95%;
+    max-width: 380px;
+    padding: 24px 18px 20px;
+  }
+
+  .settings-options-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .settings-opt-btn {
+    padding: 10px 4px;
+    font-size: 11px;
+  }
+
+  .settings-lang-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .settings-lang-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* ── 8. Auth Modal responsive ── */
+  .auth-modal {
+    width: 95%;
+    max-width: 380px;
+    padding: 32px 20px 24px;
+    border-radius: 16px;
+  }
+
+  .auth-title {
+    font-size: 19px;
+  }
+
+  .auth-field {
+    padding: 0 10px;
+  }
+
+  .auth-input {
+    font-size: 13.5px;
+    padding: 10px 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE PEQUEÑO (≤480px)
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .bubble {
+    max-width: 92%;
+  }
+
+  .welcome-title {
+    font-size: 21px;
+  }
+
+  .input-wrapper {
+    padding: 6px 6px 6px 12px;
+  }
+
+  .mode-select {
+    font-size: 10.5px;
+    max-width: 95px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 

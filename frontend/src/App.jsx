@@ -12,6 +12,7 @@ import MoaiLoader from './components/MoaiLoader';
 function AppContent() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, loading, signOut } = useAuth();
   const { language } = useSettings();
 
@@ -33,12 +34,18 @@ function AppContent() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${sidebarOpen ? 'sidebar-open' : ''}`}>
       <Sidebar
         chats={chats}
         activeChatId={activeChatId}
-        onSelectChat={handleSelectChat}
-        onNewChat={handleNewChat}
+        onSelectChat={(id) => {
+          handleSelectChat(id);
+          setSidebarOpen(false);
+        }}
+        onNewChat={() => {
+          handleNewChat();
+          setSidebarOpen(false);
+        }}
         onDeleteChat={handleDeleteChat}
         isGenerating={isGenerating}
         modes={MODES}
@@ -46,6 +53,8 @@ function AppContent() {
         onSignOut={signOut}
         onOpenAuth={() => setAuthModalOpen(true)}
         onOpenSettings={() => setSettingsModalOpen(true)}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
       <ChatWindow
         chat={activeChat}
@@ -59,6 +68,11 @@ function AppContent() {
         isAnonymous={!user}
         user={user}
         onOpenAuth={() => setAuthModalOpen(true)}
+        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+        onNewChat={() => {
+          handleNewChat();
+          setSidebarOpen(false);
+        }}
       />
       <AuthModal
         isOpen={authModalOpen}

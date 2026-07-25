@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LogOut, LogIn, Settings } from 'lucide-react';
+import { LogOut, LogIn, Settings, X } from 'lucide-react';
 import logoSidebar from '../assets/logo.png';
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -16,6 +16,7 @@ function Sidebar({
   chats, activeChatId, onSelectChat, onNewChat, onDeleteChat,
   isGenerating, modes,
   user, onSignOut, onOpenAuth, onOpenSettings,
+  isOpen, onClose,
 }) {
   const [hoveredId, setHoveredId] = useState(null);
   const { t } = useSettings();
@@ -25,18 +26,25 @@ function Sidebar({
   const formattedName = formatName(rawName);
 
   return (
-    <aside className="sidebar">
+    <>
+      <div className={`sidebar-overlay ${isOpen ? 'active' : ''}`} onClick={onClose} />
+      <aside className={`sidebar ${isOpen ? 'sidebar-mobile-open' : ''}`}>
       {/* ── Brand ── */}
       <div className="sidebar-brand">
-        {logoSidebar ? (
-          <img src={logoSidebar} alt="S1GM4 logo" className="sidebar-logo" />
-        ) : (
-          <span className="sidebar-brand-icon">🗿</span>
-        )}
-        <div>
-          <h2 className="sidebar-brand-title">S1GM4</h2>
-          <span className="sidebar-brand-sub">{t('brandSub')}</span>
+        <div className="sidebar-brand-left">
+          {logoSidebar ? (
+            <img src={logoSidebar} alt="S1GM4 logo" className="sidebar-logo" />
+          ) : (
+            <span className="sidebar-brand-icon">🗿</span>
+          )}
+          <div>
+            <h2 className="sidebar-brand-title">S1GM4</h2>
+            <span className="sidebar-brand-sub">{t('brandSub')}</span>
+          </div>
         </div>
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Cerrar menú">
+          <X size={18} />
+        </button>
       </div>
 
       {/* ── Nuevo chat ── */}
@@ -136,6 +144,7 @@ function Sidebar({
         )}
       </div>
     </aside>
+    </>
   );
 }
 
