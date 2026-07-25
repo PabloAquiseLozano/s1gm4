@@ -269,20 +269,13 @@ body {
   overflow-y: auto;
   padding: 24px 16px;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
-.chat-shell-centered {
+
+.messages-area-centered {
   justify-content: center;
   align-items: center;
-}
-.chat-shell-centered .messages-area {
-  flex: none;
-  display: flex;
-  justify-content: center;
-  padding-bottom: 0;
-}
-.chat-shell-centered .input-footer {
-  width: 100%;
-  padding-top: 24px;
 }
 
 .welcome-state {

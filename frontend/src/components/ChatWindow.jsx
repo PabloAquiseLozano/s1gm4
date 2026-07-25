@@ -51,7 +51,7 @@ function ChatWindow({
   const toggleMic = useCallback(() => (listening ? stopMic() : startMic()), [listening, stopMic, startMic]);
 
   return (
-    <div className={`chat-shell ${isEmpty ? 'chat-shell-centered' : ''}`}>
+    <div className="chat-shell">
       {/* ── Botón hamburguesa flotante (solo mobile) ── */}
       <button
         className="mobile-menu-btn"
@@ -62,7 +62,7 @@ function ChatWindow({
       </button>
 
       {/* ── Área de mensajes ── */}
-      <div className="messages-area">
+      <div className={`messages-area ${isEmpty ? 'messages-area-centered' : ''}`}>
         {isEmpty ? (
           <WelcomeScreen
             mode={mode}
