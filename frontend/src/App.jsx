@@ -69,10 +69,6 @@ function AppContent() {
         user={user}
         onOpenAuth={() => setAuthModalOpen(true)}
         onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-        onNewChat={() => {
-          handleNewChat();
-          setSidebarOpen(false);
-        }}
       />
       <AuthModal
         isOpen={authModalOpen}

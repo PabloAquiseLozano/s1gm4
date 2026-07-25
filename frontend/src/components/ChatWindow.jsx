@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { Menu, SquarePen } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useSettings } from '../contexts/SettingsContext';
 import WelcomeScreen from './WelcomeScreen';
@@ -23,7 +23,6 @@ function ChatWindow({
   onOpenAuth,
   user,
   onToggleSidebar,
-  onNewChat,
 }) {
   const messagesEndRef = useRef(null);
   const { language }   = useSettings();
@@ -53,25 +52,14 @@ function ChatWindow({
 
   return (
     <div className={`chat-shell ${isEmpty ? 'chat-shell-centered' : ''}`}>
-      {/* ── Barra superior mobile ── */}
-      <header className="mobile-topbar">
-        <button
-          className="mobile-topbar-btn"
-          onClick={onToggleSidebar}
-          aria-label="Abrir menú"
-        >
-          <Menu size={20} />
-        </button>
-        <span className="mobile-topbar-title">S1GM4</span>
-        <button
-          className="mobile-topbar-btn"
-          onClick={onNewChat}
-          disabled={isAnonymous || isGenerating}
-          aria-label="Nuevo chat"
-        >
-          <SquarePen size={18} />
-        </button>
-      </header>
+      {/* ── Botón hamburguesa flotante (solo mobile) ── */}
+      <button
+        className="mobile-menu-btn"
+        onClick={onToggleSidebar}
+        aria-label="Abrir menú"
+      >
+        <Menu size={20} />
+      </button>
 
       {/* ── Área de mensajes ── */}
       <div className="messages-area">
