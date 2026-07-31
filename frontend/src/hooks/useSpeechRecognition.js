@@ -23,7 +23,7 @@ export function useSpeechRecognition({ language = 'es', onResult, onFinal }) {
     shouldRestartRef.current = false;
     accumulatedRef.current   = '';
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try { recognitionRef.current.stop(); } catch { /* noop */ }
     }
     setListening(false);
   }, []);
@@ -37,7 +37,7 @@ export function useSpeechRecognition({ language = 'es', onResult, onFinal }) {
 
     // Detener cualquier instancia previa
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try { recognitionRef.current.stop(); } catch { /* noop */ }
     }
 
     const rec = new SR();
@@ -96,7 +96,7 @@ export function useSpeechRecognition({ language = 'es', onResult, onFinal }) {
     return () => {
       shouldRestartRef.current = false;
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch {}
+        try { recognitionRef.current.stop(); } catch { /* noop */ }
       }
     };
   }, []);

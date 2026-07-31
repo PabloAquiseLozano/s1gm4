@@ -3,11 +3,9 @@ import { X, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Shield } from 'lucide-reac
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 
-/** Validación de formato de email con regex */
 const isValidEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-/** Icono de Google como SVG */
 function GoogleIcon({ size = 20 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24">
@@ -23,7 +21,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const { signInWithGoogle, signUpWithEmail, signInWithEmail } = useAuth();
   const { t } = useSettings();
 
-  const [view, setView] = useState('login'); // 'login' | 'register'
+  const [view, setView] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -85,11 +83,9 @@ export default function AuthModal({ isOpen, onClose }) {
       handleClose();
     } catch (err) {
       const msg = err.message || '';
-      if (msg.includes('Invalid login credentials')) {
-        setError('Email o contraseña incorrectos');
-      } else {
-        setError(msg || 'Error al iniciar sesión');
-      }
+      setError(msg.includes('Invalid login credentials')
+        ? 'Email o contraseña incorrectos'
+        : (msg || 'Error al iniciar sesión'));
       setIsSubmitting(false);
     }
   };
@@ -106,75 +102,88 @@ export default function AuthModal({ isOpen, onClose }) {
       handleClose();
     } catch (err) {
       const msg = err.message || '';
-      if (msg.includes('already registered')) {
-        setError('Este email ya está registrado.');
-      } else {
-        setError(msg || 'Error al registrarse');
-      }
+      setError(msg.includes('already registered')
+        ? 'Este email ya está registrado.'
+        : (msg || 'Error al registrarse'));
       setIsSubmitting(false);
     }
   };
 
+  const divider = (
+    <div className="my-5 flex items-center gap-3">
+      <div className="h-px flex-1 bg-line" />
+      <span className="whitespace-nowrap text-xs text-ink-muted">o</span>
+      <div className="h-px flex-1 bg-line" />
+    </div>
+  );
+
+  const googleButton = (
+    <button
+      className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#dadce0] bg-white px-5 py-3 text-sm font-medium text-[#1f1f1f] transition enabled:hover:-translate-y-0.5 enabled:hover:bg-[#f8f9fa] enabled:hover:shadow-[0_4px_16px_rgba(0,0,0,0.3)] disabled:cursor-not-allowed disabled:opacity-60"
+      onClick={handleGoogleLogin}
+      disabled={isSubmitting}
+    >
+      <GoogleIcon size={20} />
+      <span>{t('googleLogin')}</span>
+    </button>
+  );
+
+  const primaryButton = (label) => (
+    <button
+      type="submit"
+      className="flex w-full items-center justify-center gap-3 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-black transition enabled:hover:-translate-y-0.5 enabled:hover:bg-[#2ae69a] enabled:hover:shadow-[0_4px_16px_rgba(0,0,0,0.3)] disabled:cursor-not-allowed disabled:opacity-60"
+      disabled={isSubmitting}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div className="auth-overlay" onClick={handleClose}>
-      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Botón cerrar */}
-        <button className="auth-close" onClick={handleClose} title={t('close')}>
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/65 backdrop-blur-[10px] animate-auth-fade-in" onClick={handleClose}>
+      <div className="relative max-h-[90vh] w-[92%] max-w-[420px] overflow-y-auto rounded-[20px] border border-line-light bg-modal px-8 pb-8 pt-10 shadow-[0_24px_64px_rgba(0,0,0,0.5),0_0_32px_rgba(25,195,125,0.08)] animate-auth-scale-up max-md:w-[95%] max-md:max-w-[380px] max-md:rounded-[16px] max-md:px-5 max-md:pb-6 max-md:pt-8" onClick={(e) => e.stopPropagation()}>
+        <button className="absolute right-3.5 top-3.5 flex h-8 w-8 items-center justify-center rounded-lg p-1.5 text-ink-muted transition hover:bg-panel-light hover:text-ink" onClick={handleClose} title={t('close')}>
           <X size={18} />
         </button>
 
-        {/* ═══ VISTA: LOGIN ═══ */}
         {view === 'login' && (
           <>
-            <div className="auth-header">
-              <div className="settings-header-icon">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-dim text-accent">
                 <Shield size={28} />
               </div>
-              <h2 className="auth-title">{t('loginTitle')}</h2>
-              <p className="auth-subtitle">
-                {t('loginSubtitle')}
-              </p>
+              <h2 className="mb-2 font-display text-[22px] font-bold text-ink-strong max-md:text-[19px]">{t('loginTitle')}</h2>
+              <p className="text-[13px] leading-relaxed text-ink-muted">{t('loginSubtitle')}</p>
             </div>
 
-            {/* Google OAuth */}
-            <button
-              className="auth-btn auth-btn-google"
-              onClick={handleGoogleLogin}
-              disabled={isSubmitting}
-            >
-              <GoogleIcon size={20} />
-              <span>{t('googleLogin')}</span>
-            </button>
+            {googleButton}
+            {divider}
 
-            <div className="auth-divider"><span>o</span></div>
-
-            {/* Formulario email/contraseña */}
-            <form onSubmit={handleEmailLogin} className="auth-form">
-              <div className="auth-field">
-                <Mail size={16} className="auth-field-icon" />
+            <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
+              <div className="flex items-center gap-2.5 rounded-xl border border-line bg-panel-light px-[14px] transition focus-within:border-accent max-md:px-2.5">
+                <Mail size={16} className="flex-shrink-0 text-ink-muted" />
                 <input
                   type="email"
                   placeholder={t('emailPlaceholder')}
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(''); }}
                   autoComplete="email"
-                  className="auth-input"
+                  className="flex-1 bg-transparent py-3 text-sm text-ink placeholder:text-ink-muted focus:outline-none"
                 />
               </div>
 
-              <div className="auth-field">
-                <Lock size={16} className="auth-field-icon" />
+              <div className="flex items-center gap-2.5 rounded-xl border border-line bg-panel-light px-[14px] transition focus-within:border-accent max-md:px-2.5">
+                <Lock size={16} className="flex-shrink-0 text-ink-muted" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t('passwordPlaceholder')}
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(''); }}
                   autoComplete="current-password"
-                  className="auth-input"
+                  className="flex-1 bg-transparent py-3 text-sm text-ink placeholder:text-ink-muted focus:outline-none"
                 />
                 <button
                   type="button"
-                  className="auth-field-toggle"
+                  className="text-ink-muted transition hover:text-ink"
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
                 >
@@ -182,102 +191,79 @@ export default function AuthModal({ isOpen, onClose }) {
                 </button>
               </div>
 
-              {error && <p className="auth-error">{error}</p>}
-
-              <button
-                type="submit"
-                className="auth-btn auth-btn-primary"
-                disabled={isSubmitting}
-              >
-                {t('login')}
-              </button>
+              {error && <p className="py-1 text-center text-xs leading-[1.4] text-danger">{error}</p>}
+              {primaryButton(t('login'))}
             </form>
 
-            <p className="auth-switch">
+            <p className="mt-4 text-center text-[13px] text-ink-muted">
               {t('noAccount')}{' '}
-              <button className="auth-switch-link" onClick={() => switchView('register')}>
+              <button className="font-medium text-accent hover:text-[#2ae69a] hover:underline" onClick={() => switchView('register')}>
                 {t('register')}
               </button>
             </p>
 
-            {/* Continuar sin cuenta */}
-            <div className="auth-divider"><span>o</span></div>
-            <button className="auth-btn auth-btn-guest" onClick={handleClose}>
+            {divider}
+            <button className="flex w-full items-center justify-center gap-3 rounded-xl border border-line bg-transparent px-5 py-3 text-[13px] font-medium text-ink-secondary transition hover:border-line-light hover:bg-panel-light hover:text-ink" onClick={handleClose}>
               {t('guestContinue')}
             </button>
-            <p className="auth-hint">
-              {t('guestHint')}
-            </p>
+            <p className="mt-2.5 text-center text-[11px] leading-[1.4] text-ink-muted">{t('guestHint')}</p>
           </>
         )}
 
-        {/* ═══ VISTA: REGISTER ═══ */}
         {view === 'register' && (
           <>
-            <div className="auth-header">
-              <button className="auth-back" onClick={() => switchView('login')} title="Volver">
+            <div className="mb-6 text-center">
+              <button className="absolute left-3.5 top-3.5 flex items-center rounded-lg p-1.5 text-ink-muted transition hover:bg-panel-light hover:text-ink" onClick={() => switchView('login')} title="Volver">
                 <ArrowLeft size={18} />
               </button>
-              <div className="settings-header-icon">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-dim text-accent">
                 <Shield size={28} />
               </div>
-              <h2 className="auth-title">{t('createAccount')}</h2>
-              <p className="auth-subtitle">
-                {t('loginSubtitle')}
-              </p>
+              <h2 className="mb-2 font-display text-[22px] font-bold text-ink-strong max-md:text-[19px]">{t('createAccount')}</h2>
+              <p className="text-[13px] leading-relaxed text-ink-muted">{t('loginSubtitle')}</p>
             </div>
 
-            {/* Google OAuth */}
-            <button
-              className="auth-btn auth-btn-google"
-              onClick={handleGoogleLogin}
-              disabled={isSubmitting}
-            >
-              <GoogleIcon size={20} />
-              <span>{t('googleLogin')}</span>
-            </button>
+            {googleButton}
+            {divider}
 
-            <div className="auth-divider"><span>o</span></div>
-
-            {/* Formulario de registro */}
-            <form onSubmit={handleRegister} className="auth-form">
-              <div className="auth-field">
-                <User size={16} className="auth-field-icon" />
+            <form onSubmit={handleRegister} className="flex flex-col gap-3">
+              <div className="flex items-center gap-2.5 rounded-xl border border-line bg-panel-light px-[14px] transition focus-within:border-accent max-md:px-2.5">
+                <User size={16} className="flex-shrink-0 text-ink-muted" />
                 <input
                   type="text"
                   placeholder={t('namePlaceholder')}
                   value={fullName}
                   onChange={(e) => { setFullName(e.target.value); setError(''); }}
                   autoComplete="name"
-                  className="auth-input"
+                  className="flex-1 bg-transparent py-3 text-sm text-ink placeholder:text-ink-muted focus:outline-none"
                 />
               </div>
 
-              <div className="auth-field">
-                <Mail size={16} className="auth-field-icon" />
+              <div className="flex items-center gap-2.5 rounded-xl border border-line bg-panel-light px-[14px] transition focus-within:border-accent max-md:px-2.5">
+                <Mail size={16} className="flex-shrink-0 text-ink-muted" />
                 <input
                   type="email"
                   placeholder={t('emailPlaceholder')}
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(''); }}
                   autoComplete="email"
-                  className="auth-input"
+                  className="flex-1 bg-transparent py-3 text-sm text-ink placeholder:text-ink-muted focus:outline-none"
                 />
               </div>
 
-              <div className="auth-field">
-                <Lock size={16} className="auth-field-icon" />
+              <div className="flex items-center gap-2.5 rounded-xl border border-line bg-panel-light px-[14px] transition focus-within:border-accent max-md:px-2.5">
+                <Lock size={16} className="flex-shrink-0 text-ink-muted" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t('passwordPlaceholder')}
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(''); }}
                   autoComplete="new-password"
-                  className="auth-input"
+                  className="flex-1 bg-transparent py-3 text-sm text-ink placeholder:text-ink-muted focus:outline-none"
                 />
                 <button
                   type="button"
-                  className="auth-field-toggle"
+                  className="text-ink-muted transition hover:text-ink"
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
                 >
@@ -285,20 +271,13 @@ export default function AuthModal({ isOpen, onClose }) {
                 </button>
               </div>
 
-              {error && <p className="auth-error">{error}</p>}
-
-              <button
-                type="submit"
-                className="auth-btn auth-btn-primary"
-                disabled={isSubmitting}
-              >
-                {t('register')}
-              </button>
+              {error && <p className="py-1 text-center text-xs leading-[1.4] text-danger">{error}</p>}
+              {primaryButton(t('register'))}
             </form>
 
-            <p className="auth-switch">
+            <p className="mt-4 text-center text-[13px] text-ink-muted">
               {t('hasAccount')}{' '}
-              <button className="auth-switch-link" onClick={() => switchView('login')}>
+              <button className="font-medium text-accent hover:text-[#2ae69a] hover:underline" onClick={() => switchView('login')}>
                 {t('login')}
               </button>
             </p>

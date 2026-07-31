@@ -1,28 +1,30 @@
 import { supabase } from '../supabaseClient';
 
+const chatWithMessagesSelect = '*, messages(*)';
+
 export const chatService = {
-  async loadChats(sessionId) {
+  async loadChats(userId) {
     const { data, error } = await supabase
       .from('chats')
-      .select('*, messages(*)')
-      .eq('session_id', sessionId)
+      .select(chatWithMessagesSelect)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
     return { data, error };
   },
 
-  async createChat(sessionId, mode = 'reflexive') {
+  async createChat(userId, mode = 'reflexive') {
     const { data, error } = await supabase
       .from('chats')
-      .insert([{ title: 'Nuevo chat', mode, session_id: sessionId }])
+      .insert([{ title: 'Nuevo chat', mode, user_id: userId }])
       .select()
       .single();
     return { data, error };
   },
 
-  async updateChatMode(chatId, modeId) {
+  async updateChatMode(chatId, mode) {
     const { error } = await supabase
       .from('chats')
-      .update({ mode: modeId })
+      .update({ mode })
       .eq('id', chatId);
     return { error };
   },
@@ -50,5 +52,5 @@ export const chatService = {
       .select()
       .single();
     return { data, error };
-  }
+  },
 };

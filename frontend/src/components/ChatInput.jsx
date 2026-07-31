@@ -1,4 +1,3 @@
-import { Select, MenuItem, IconButton } from '@mui/material';
 import { Mic, Square, ArrowUp } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -19,102 +18,53 @@ function ChatInput({ mode, onModeChange, isAggressive, listening, isGenerating, 
   };
 
   return (
-    <div className={`input-footer ${isAggressive ? 'input-footer-danger' : ''}`}>
-      <div className="input-wrapper">
+    <div className="w-full bg-bg px-5 pb-6 pt-4 max-md:px-3 max-md:pb-[calc(12px+env(safe-area-inset-bottom))] max-md:pt-2.5">
+      <div className="mx-auto flex max-w-[820px] items-center gap-2.5 rounded-[24px] bg-panel-light py-[10px] pl-5 pr-[14px] transition-colors max-md:gap-1.5 max-md:rounded-[20px] max-md:px-2 max-md:pl-[14px]">
         <textarea
-          className={`chat-input ${isAggressive ? 'chat-input-danger' : ''}`}
+          className="max-h-[160px] min-h-6 max-md:max-h-[120px] flex-1 resize-none overflow-y-auto bg-transparent p-0 text-sm leading-[1.55] text-ink placeholder:text-ink-muted focus:outline-none"
           rows={1}
-          placeholder={
-            listening
-              ? t('listening')
-              : t('inputPlaceholder')
-          }
+          placeholder={listening ? t('listening') : t('inputPlaceholder')}
           value={inputValue}
           onChange={handleChange}
           onKeyDown={handleKey}
           disabled={isGenerating}
         />
 
-        <div className="input-actions">
-          <Select
+        <div className="flex items-center gap-2 max-md:gap-1.5">
+          <select
             value={mode?.id || 'reflexive'}
             onChange={(e) => onModeChange(e.target.value)}
-            size="small"
-            renderValue={(value) => (
-               <span style={{ color: value === 'aggressive' ? 'var(--danger)' : 'inherit', fontWeight: 500 }}>
-                 {value === 'aggressive' ? t('modeAggressive') : t('modeReflexive')}
-               </span>
-            )}
-            sx={{
-              color: 'var(--text-secondary)',
-              borderRadius: '12px',
-              height: '36px',
-              fontSize: '13px',
-              fontFamily: 'Inter',
-              '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-              '&:hover': { background: 'rgba(255,255,255,0.05)' }
-            }}
-            MenuProps={{
-              sx: {
-                "& .MuiPaper-root": {
-                  backgroundColor: 'var(--panel)',
-                  color: 'var(--text)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                  marginTop: '8px'
-                },
-                "& .MuiList-root": {
-                  padding: '8px'
-                },
-                "& .MuiMenuItem-root": {
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  marginBottom: '4px',
-                  '&:hover': { backgroundColor: 'var(--panel-light)' }
-                },
-                "& .MuiMenuItem-root:last-child": {
-                  marginBottom: 0
-                },
-                "& .MuiMenuItem-root.Mui-selected": {
-                  backgroundColor: 'rgba(255,255,255,0.1) !important',
-                }
-              }
-            }}
+            className={`cursor-pointer rounded-xl border bg-panel px-2.5 py-1.5 text-xs font-medium text-ink-secondary outline-none transition hover:bg-panel-light focus:border-line-light max-md:max-w-[95px] max-md:px-1.5 max-md:text-[11px] ${
+              isAggressive ? 'border-danger/30 text-danger' : 'border-line'
+            }`}
           >
-            <MenuItem value="reflexive">
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text)' }}>{t('modeReflexive')}</span>
-              </div>
-            </MenuItem>
-            <MenuItem value="aggressive">
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#ef4444' }}>{t('modeAggressive')}</span>
-              </div>
-            </MenuItem>
-          </Select>
+            <option value="reflexive">{t('modeReflexive')}</option>
+            <option value="aggressive" className="text-danger">{t('modeAggressive')}</option>
+          </select>
 
-          <IconButton 
-            onClick={onToggleMic} 
-            sx={{ 
-              color: listening ? 'var(--danger)' : 'var(--text-muted)',
-              '&:hover': { background: 'rgba(255,255,255,0.05)' }
-            }}
+          <button
+            className={`mic-btn max-md:h-8 max-md:w-8 max-md:min-w-8 max-md:rounded-full max-md:text-sm ${
+              listening ? 'mic-btn-active' : ''
+            }`}
+            onClick={onToggleMic}
+            title={listening ? t('listening') : ''}
           >
             {listening ? <Square size={18} fill="currentColor" /> : <Mic size={18} />}
-          </IconButton>
+          </button>
 
           {inputValue.trim().length > 0 && (
-            <IconButton
+            <button
               onClick={() => onSend()}
               disabled={isGenerating}
-              sx={{ 
-                color: isAggressive ? 'var(--danger)' : 'var(--text)',
-                '&:hover': { background: 'rgba(255,255,255,0.05)' }
-              }}
+              className={`flex h-[34px] w-[34px] min-w-[34px] items-center justify-center rounded-full text-base font-bold transition disabled:cursor-not-allowed disabled:bg-line-light disabled:text-ink-muted max-md:h-8 max-md:w-8 max-md:min-w-8 max-md:text-sm ${
+                isAggressive
+                  ? 'bg-danger text-white hover:bg-[#f87171]'
+                  : 'bg-white text-black hover:scale-[1.05] hover:opacity-80'
+              }`}
+              aria-label="Enviar mensaje"
             >
               <ArrowUp size={18} />
-            </IconButton>
+            </button>
           )}
         </div>
       </div>

@@ -27,14 +27,14 @@ function AppContent() {
 
   if (loading || isLoading) {
     return (
-      <div className="app-shell" style={{ justifyContent: 'center', alignItems: 'center' }}>
+      <div className="flex h-dvh w-full items-center justify-center overflow-hidden">
         <MoaiLoader />
       </div>
     );
   }
 
   return (
-    <div className={`app-shell ${sidebarOpen ? 'sidebar-open' : ''}`}>
+    <div className="relative flex h-dvh w-full overflow-hidden">
       <Sidebar
         chats={chats}
         activeChatId={activeChatId}
@@ -48,7 +48,6 @@ function AppContent() {
         }}
         onDeleteChat={handleDeleteChat}
         isGenerating={isGenerating}
-        modes={MODES}
         user={user}
         onSignOut={signOut}
         onOpenAuth={() => setAuthModalOpen(true)}

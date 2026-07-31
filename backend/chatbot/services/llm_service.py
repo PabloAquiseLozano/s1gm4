@@ -145,27 +145,43 @@ def _build_contents(request: ChatRequest) -> list:
     return contents
 
 
-def _get_model(system_instruction: str):
+def _get_model(system_instruction: str, disable_thinking: bool = True):
     """
     Instancia el modelo Gemma 4.
+
+    `disable_thinking=True` fija `thinking_budget=0` en la config de generación,
+    que es la forma soportada por la API de Gemini para desactivar el razonamiento
+    interno de los modelos Gemma. Si el modelo no soporta ese parámetro, se
+    reintenta sin él para no romper la generación.
     """
     if not GEMINI_API_KEY:
         raise HTTPException(status_code=400, detail="GEMINI_API_KEY no configurada.")
 
-    # Se intenta configurar parámetros de generación para mitigar razonamiento interno
     config_args = {
         "temperature": 0.7,
     }
+    if disable_thinking:
+        config_args["thinking_budget"] = 0
 
-    return genai.GenerativeModel(
-        model_name=CHATBOT_MODEL,
-        system_instruction=system_instruction,
-        generation_config=genai.GenerationConfig(**config_args),
-    )
+    try:
+        return genai.GenerativeModel(
+            model_name=CHATBOT_MODEL,
+            system_instruction=system_instruction,
+            generation_config=genai.GenerationConfig(**config_args),
+        )
+    except Exception:
+        if not disable_thinking:
+            raise
+        config_args.pop("thinking_budget", None)
+        return genai.GenerativeModel(
+            model_name=CHATBOT_MODEL,
+            system_instruction=system_instruction,
+            generation_config=genai.GenerationConfig(**config_args),
+        )
 
 
 def _prepare_system_instruction(request: ChatRequest) -> str:
-    system_instruction = get_prompt(request.mode, request.system_prompt)
+    system_instruction = get_prompt(request.mode or "reflexive", request.system_prompt)
     if hasattr(request, 'language') and request.language:
         lang_names = {'es': 'Español', 'en': 'English', 'pt': 'Português', 'fr': 'Français'}
         lang_str = lang_names.get(request.language, request.language)
